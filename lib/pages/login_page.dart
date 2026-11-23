@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import 'main_navigation.dart';
 
 class LoginPage extends StatefulWidget {
@@ -10,18 +11,14 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscure = true;
   bool _loading = false;
 
-  // Identifiants de démonstration
-  static const String _validUser = 'misaki';
-  static const String _validPass = 'misaki123';
-
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -29,19 +26,27 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-
-    if (_usernameController.text.trim() == _validUser &&
-        _passwordController.text == _validPass) {
+    try {
+      await ApiService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainNavigation()),
       );
-    } else {
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.redAccent),
+      );
+    } catch (_) {
+      if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Identifiant ou mot de passe incorrect'),
+          content: Text('Impossible de contacter le serveur'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -85,14 +90,18 @@ class _LoginPageState extends State<LoginPage> {
                       const Text('Connectez-vous pour continuer'),
                       const SizedBox(height: 24),
                       TextFormField(
-                        controller: _usernameController,
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: 'Identifiant',
-                          prefixIcon: Icon(Icons.person_outline),
+                          labelText: 'E-mail',
+                          prefixIcon: Icon(Icons.email_outlined),
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Champ requis';
+                          if (!v.contains('@')) return 'E-mail invalide';
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -138,11 +147,6 @@ class _LoginPageState extends State<LoginPage> {
                               : const Text('Se connecter',
                                   style: TextStyle(fontSize: 16)),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Démo — misaki / misaki123',
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                       ),
                     ],
                   ),
