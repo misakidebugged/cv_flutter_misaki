@@ -19,7 +19,9 @@ class _FamilyPageState extends State<FamilyPage> {
   }
 
   void _reload() {
-    setState(() => _future = ApiService.listMembers());
+  setState(() {
+    _future = ApiService.listMembers();
+  });
   }
 
   Future<void> _openForm({Map<String, dynamic>? member}) async {
