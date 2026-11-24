@@ -3,15 +3,12 @@
 Application Flutter présentant un CV, page famille et pages coordonnées,
 avec gestion dynamique des membres de la famille via une API REST.
 
-## Démonstration REST avec API
+## Démonstration CRUD avec API
 Source API provenance de [`espoirbaraka/api-test`](https://github.com/espoirbaraka/api-test)
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     👇 INSÉRER LA VIDÉO DE DÉMONSTRATION ICI 
 
-    
+https://github.com/user-attachments/assets/49a95160-05a7-4f57-a574-41bd37e82661
 
-<!-- VIDÉO DE DÉMONSTRATION — à remplacer -->
 
 ## Identifiants de connexion
 
