@@ -63,7 +63,8 @@ class _FamilyFormPageState extends State<FamilyFormPage> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final x = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final x = await picker.pickImage(
+        source: ImageSource.gallery, imageQuality: 80);
     if (x != null) setState(() => _imagePath = x.path);
   }
 
@@ -142,6 +143,18 @@ class _FamilyFormPageState extends State<FamilyFormPage> {
   @override
   Widget build(BuildContext context) {
     final existingImageUrl = widget.member?['image_url'] as String?;
+
+    // ── Choix de l'image affichée dans l'avatar ──────────────────────────
+    // 1. Si l'utilisateur vient de choisir une image locale → FileImage
+    // 2. Sinon si le membre existant a déjà une image sur le serveur → NetworkImage
+    // 3. Sinon → icône "ajouter une photo"
+    ImageProvider? avatarImage;
+    if (_imagePath != null) {
+      avatarImage = FileImage(File(_imagePath!));
+    } else if (existingImageUrl != null) {
+      avatarImage = NetworkImage(existingImageUrl);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEdit ? 'Modifier le membre' : 'Nouveau membre'),
@@ -157,12 +170,8 @@ class _FamilyFormPageState extends State<FamilyFormPage> {
                 child: CircleAvatar(
                   radius: 48,
                   backgroundColor: Colors.orange.shade100,
-                  backgroundImage: _imagePath != null
-                      ? FileImage(_imageFromPath(_imagePath!))
-                      : (existingImageUrl != null
-                          ? NetworkImage(existingImageUrl)
-                          : null) as ImageProvider?,
-                  child: (_imagePath == null && existingImageUrl == null)
+                  backgroundImage: avatarImage,
+                  child: avatarImage == null
                       ? Icon(Icons.add_a_photo,
                           size: 32, color: Colors.orange.shade800)
                       : null,
@@ -189,9 +198,8 @@ class _FamilyFormPageState extends State<FamilyFormPage> {
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
-                  child: Text(_date == null
-                      ? 'Choisir une date'
-                      : _fmt(_date!)),
+                  child:
+                      Text(_date == null ? 'Choisir une date' : _fmt(_date!)),
                 ),
               ),
             ),
@@ -221,7 +229,3 @@ class _FamilyFormPageState extends State<FamilyFormPage> {
     );
   }
 }
-
-// image_picker ne renvoie que le path ; FileImage a besoin d'un File
-// mais on garde ce helper pour éviter d'importer dart:io partout.
-File _imageFromPath(String path) => File(path);
